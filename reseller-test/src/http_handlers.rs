@@ -26,7 +26,7 @@ pub fn http_handler(
     _state: &mut ResellerState,
     request: UserRequest
 ) -> (HttpResponse, Vec<u8>) { 
-    kiprintln!("request: {:?}", request);
+    kiprintln!("request came in");
      match request {
         UserRequest::CallApi(reseller_api_packet) => {
             let remote_response = call_remote_api(_state, reseller_api_packet);
@@ -44,11 +44,12 @@ fn call_remote_api(
     state: &mut ResellerState,
     request: ResellerApiPacket,
 ) -> Result<RemoteApiResponse, String> {
+    kiprintln!("calling remote api");
     // Create the RemoteApiRequest based on the provider in the reseller_api_packet.
     let remote_api_request = match request.provider {
         RemoteApiProvider::Anthropic => {
-            // Use the helper to create an AnthropicMessage with all necessary details.
             let anth_message = create_anthropic_message(request.message, state);
+            kiprintln!("anth_message: {:#?}", anth_message);
             RemoteApiRequest {
                 provider: RemoteApiProvider::Anthropic,
                 endpoint: anth_message.endpoint.clone(),
@@ -62,14 +63,11 @@ fn call_remote_api(
         }
     };
 
-    // Now, call the remote API using the anth_message created.
-    // Depending on the signature of send_request_await_response, you might use either the method-based call or pass the full request.
-    // For example, if send_request_await_response accepts a RemoteApiRequest:
     let response = send_request_await_response(
         Method::GET, 
         Url::parse(&remote_api_request.endpoint).unwrap(), 
         Some(remote_api_request.headers), 
-        5000, 
+        8000, 
         vec![]
     ).map_err(|e| e.to_string())?;
     let response_body = response.body();
