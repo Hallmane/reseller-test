@@ -1,0 +1,14 @@
+[
+    {
+        "process_name": "reseller-test",
+        "process_wasm_path": "/reseller-test.wasm",
+        "on_exit": "Restart",
+        "request_networking": true,
+        "request_capabilities": [
+            "http-server:distro:sys",
+            "vfs:distro:sys"
+        ],
+        "grant_capabilities": [],
+        "public": true
+    }
+]
