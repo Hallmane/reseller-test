@@ -6,6 +6,7 @@ use serde_json::json;
 use std::collections::HashMap;
 use kinode_app_common::State;
 use process_macros::SerdeJsonInto;
+use kinode_process_lib::kiprintln;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ResellerState {
@@ -16,12 +17,15 @@ pub struct ResellerState {
 impl State for ResellerState {
     fn new() -> Self {
         let mut remote_api_keys = HashMap::new();
-        remote_api_keys.insert("anthropic".to_string(), "sk-ant-api03-1234567890".to_string());
+        remote_api_keys.insert("anthropic".to_string(), "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".to_string());
         
-        Self { 
+        let fresh_state = Self { 
             user_facing_api_keys: vec![],
             remote_api_keys
-        }
+        };
+
+        kiprintln!("ResellerState created: {:#?}", &fresh_state);
+        fresh_state
     }
 }
 

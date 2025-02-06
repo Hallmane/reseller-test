@@ -1,80 +1,200 @@
-use crate::function_signatures::UserRequest;
+use std::collections::HashMap;
+use serde::Serialize;
+use serde_json::Value;
 use url::Url;
 
+use crate::function_signatures::UserRequest;
 use kinode_process_lib::http::{
     Method,
-    server::HttpResponse,
+    StatusCode,
+    Response,
+    server::{
+        //HttpResponse, 
+        send_response
+    },
     client::send_request_await_response,
 };
-
 use kinode_process_lib::kiprintln;
-
 use crate::structs::{
     ResellerState,
-    RemoteApiRequest,
-    RemoteApiResponse,
-    RemoteApiProvider,
     ResellerApiPacket,
-    RemoteApiMessage,
     ResellerApiResponse,
+    RemoteApiResponse,
+    RemoteApiRequest,
+    RemoteApiProvider,
+    RemoteApiMessage,
     create_anthropic_message,
 };
 
-/// Handle HTTP requests
-/// A user makes a simple call to the reseller to use the api
+/// Handles incoming HTTP requests.
 pub fn http_handler(
-    _state: &mut ResellerState,
+    state: &mut ResellerState,
     path: &str,
-    request: UserRequest
-) -> () { 
-    kiprintln!("request came in");
-    kiprintln!("path: {:?}", path);
+    request: UserRequest,
+) {
+    kiprintln!("HTTP request received at path: {:?}", path);
 
-    match request {
-        UserRequest::CallApi(reseller_api_packet) => {
-            let remote_response = call_remote_api(_state, reseller_api_packet);
-            let reseller_response = ResellerApiResponse {
-                response: remote_response.unwrap().content[0].text.clone(),
-            };
-            kiprintln!("reseller_response: {:?}", reseller_response);
-            (HttpResponse::new(200 as u16), serde_json::to_vec(&reseller_response).unwrap())
-        }
+    // Process the user request and prepare an appropriate response.
+    let response_bytes = match request {
+        UserRequest::CallApi(packet) => process_api_call(state, packet),
     };
+
+    send_http_response(
+        StatusCode::OK,
+        response_bytes.unwrap_or_else(|e| format!("Remote API call failed: {}", e).into_bytes()),
+    );
 }
 
+/// Processes the API call from the client.
+fn process_api_call(
+    state: &mut ResellerState,
+    packet: ResellerApiPacket,
+) -> Result<Vec<u8>, String> {
+    let remote_response = call_remote_api(state, packet)?;
+    if remote_response.content.is_empty() {
+        return Err("Remote API returned empty content".to_string());
+    }
+    let response = ResellerApiResponse {
+        response: remote_response.content[0].text.clone(),
+    };
+    serde_json::to_vec(&response).map_err(|e| format!("Serialization error: {}", e))
+}
+
+/// Builds and sends the remote API request, then extracts and deserializes the response body into a RemoteApiResponse.
 fn call_remote_api(
     state: &mut ResellerState,
-    request: ResellerApiPacket,
+    packet: ResellerApiPacket,
 ) -> Result<RemoteApiResponse, String> {
-    kiprintln!("calling remote api");
-    // Create the RemoteApiRequest based on the provider in the reseller_api_packet.
-    let remote_api_request = match request.provider {
+    let remote_request = build_remote_request(state, packet)?;
+    log_remote_request(&remote_request);
+
+    let request_body = extract_request_body(&remote_request);
+    let http_response = send_remote_api_request(&remote_request.endpoint, &remote_request.headers, request_body)?;
+    log_remote_response(&http_response);
+
+    if let Some(err) = inspect_api_error(&http_response) {
+        return Err(err);
+    }
+
+    let body_bytes = http_response.body();
+    if body_bytes.is_empty() {
+        return Err("HTTP response body is empty; expected blob bytes with the response".into());
+    }
+
+    serde_json::from_slice(body_bytes)
+        .map_err(|e| format!("Deserialization error: {}", e))
+}
+
+/// Builds the remote API request based on the provider specified in the packet.
+fn build_remote_request(
+    state: &mut ResellerState,
+    packet: ResellerApiPacket,
+) -> Result<RemoteApiRequest, String> {
+    match packet.provider {
         RemoteApiProvider::Anthropic => {
-            let anth_message = create_anthropic_message(request.message, state);
-            kiprintln!("anth_message: {:#?}", anth_message);
-            RemoteApiRequest {
+            let anth_msg = create_anthropic_message(packet.message, state);
+            kiprintln!("Constructed Anthropic message: {:#?}", anth_msg);
+            Ok(RemoteApiRequest {
                 provider: RemoteApiProvider::Anthropic,
-                endpoint: anth_message.endpoint.clone(),
-                headers: anth_message.headers.clone(),
-                message: RemoteApiMessage::Anthropic(anth_message.clone()),
-            }
-        },
-        RemoteApiProvider::OpenAi => {
-            // For OpenAi you would similarly create an OpenAiMessage (not shown here)
-            unimplemented!("OpenAi message creation is not implemented yet")
+                endpoint: anth_msg.endpoint.clone(),
+                headers: anth_msg.headers.clone(),
+                message: RemoteApiMessage::Anthropic(anth_msg),
+            })
         }
-    };
+        RemoteApiProvider::OpenAi => Err("OpenAi provider not implemented".to_string()),
+    }
+}
+
+/// Extracts the request body from the remote request.
+fn extract_request_body(remote_req: &RemoteApiRequest) -> String {
+    match &remote_req.message {
+        RemoteApiMessage::Anthropic(msg) => msg.body.clone(),
+        _ => String::new(),
+    }
+}
+
+/// Sends the HTTP request to the remote API endpoint using the HTTP client,
+/// logs the response body as a string, and returns the full Response (status, headers, and blob bytes).
+fn send_remote_api_request(
+    endpoint: &str,
+    headers: &HashMap<String, String>,
+    body: String,
+) -> Result<Response<Vec<u8>>, String> {
+    let url = Url::parse(endpoint).map_err(|e| e.to_string())?;
 
     let response = send_request_await_response(
-        Method::GET, 
-        Url::parse(&remote_api_request.endpoint).unwrap(), 
-        Some(remote_api_request.headers), 
-        8000, 
-        vec![]
-    ).map_err(|e| e.to_string())?;
-    let response_body = response.body();
-    let remote_api_response: RemoteApiResponse = serde_json::from_slice(&response_body).map_err(|e| e.to_string())?;
+        Method::POST,
+        url,
+        Some(headers.clone()),
+        8000,
+        body.into_bytes(),
+    )
+    .map_err(|e| {
+        kiprintln!("HTTP request failed: {}", e);
+        e.to_string()
+    })?;
 
-    // Process the result as needed. For this example, we simply return it.
-    Ok(remote_api_response)
+    // Log the response body (converted to a string for debugging).
+    let body_str = std::str::from_utf8(response.body()).unwrap_or("<invalid utf8>");
+    kiprintln!("Converted Response body to string: {}", body_str);
+
+    Ok(response)
+}
+
+/// Logs details of the remote API request.
+fn log_remote_request(req: &RemoteApiRequest) {
+    kiprintln!("===== Remote API Request =====");
+    kiprintln!("Endpoint: {}", req.endpoint);
+    kiprintln!("Headers: {:#?}", req.headers);
+    let body = match &req.message {
+        RemoteApiMessage::Anthropic(msg) => &msg.body,
+        _ => "<none>",
+    };
+    kiprintln!("Body: {}", body);
+    kiprintln!("===============================");
+}
+
+/// Logs details of the remote API response.
+fn log_remote_response(resp: &Response<Vec<u8>>) {
+    let body_str = std::str::from_utf8(resp.body()).unwrap_or("<invalid utf8>");
+    kiprintln!("===== Remote API Response =====");
+    kiprintln!("Raw response: {:#?}", body_str);
+    kiprintln!("===============================");
+}
+
+/// Inspects the response for an error payload.
+/// Returns Some(error_message) if an error is found.
+fn inspect_api_error(resp: &Response<Vec<u8>>) -> Option<String> {
+    if let Ok(json_val) = serde_json::from_slice::<Value>(resp.body()) {
+        if json_val.get("type").and_then(|t| t.as_str()) == Some("error") {
+            let err_msg = json_val
+                .get("error")
+                .and_then(|e| e.get("message"))
+                .and_then(|m| m.as_str())
+                .unwrap_or("Unknown error");
+            kiprintln!("Remote API error: {}", err_msg);
+            return Some(err_msg.to_string());
+        }
+    } else {
+        kiprintln!("Failed to parse response for error inspection");
+    }
+    None
+}
+
+/// Sends an HTTP response with standard headers.
+pub fn send_http_response<T: Serialize>(status_code: StatusCode, response: T) {
+    let headers = HashMap::from([
+        ("Content-Type".to_string(), "application/json".to_string()),
+        ("Access-Control-Allow-Origin".to_string(), "*".to_string()),
+        ("Access-Control-Allow-Methods".to_string(), "POST, OPTIONS".to_string()),
+        (
+            "Access-Control-Allow-Headers".to_string(),
+            "Content-Type, Authorization".to_string(),
+        ),
+    ]);
+    send_response(
+        status_code,
+        Some(headers),
+        serde_json::to_vec(&response).unwrap(),
+    );
 }
