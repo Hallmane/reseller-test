@@ -24,10 +24,13 @@ use crate::structs::{
 /// A user makes a simple call to the reseller to use the api
 pub fn http_handler(
     _state: &mut ResellerState,
+    path: &str,
     request: UserRequest
-) -> (HttpResponse, Vec<u8>) { 
+) -> () { 
     kiprintln!("request came in");
-     match request {
+    kiprintln!("path: {:?}", path);
+
+    match request {
         UserRequest::CallApi(reseller_api_packet) => {
             let remote_response = call_remote_api(_state, reseller_api_packet);
             let reseller_response = ResellerApiResponse {
@@ -36,8 +39,7 @@ pub fn http_handler(
             kiprintln!("reseller_response: {:?}", reseller_response);
             (HttpResponse::new(200 as u16), serde_json::to_vec(&reseller_response).unwrap())
         }
-     };
-    (HttpResponse::new(200 as u16), vec![])
+    };
 }
 
 fn call_remote_api(
