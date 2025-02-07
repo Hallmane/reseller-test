@@ -43,9 +43,11 @@ impl State for ResellerState {
         dotenv().ok(); 
         let mut remote_api_keys = HashMap::new();
         if let Ok(anthropic_key) = env::var("ANTHROPIC_API_KEY") {
+            println!("anthropic_key: {anthropic_key}");
             remote_api_keys.insert("anthropic".to_string(), anthropic_key);
         }
         if let Ok(openai_key) = env::var("OPENAI_API_KEY") {
+            println!("openai_key: {openai_key}");
             remote_api_keys.insert("openai".to_string(), openai_key);
         }
 
@@ -99,8 +101,9 @@ impl State for ResellerState {
 
 impl ResellerState {
     pub fn save(&self) {
-        let serialized_state = serde_json::to_string(self).expect("Failed to serialize state");
-        set_state(&serialized_state.into_bytes());
+        let serialized_state = rmp_serde::to_vec(self)
+            .expect("Failed to serialize state with MessagePack");
+        set_state(&serialized_state);
     }
 
     pub fn make_filter(kimap: &kimap::Kimap) -> eth::Filter {

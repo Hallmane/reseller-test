@@ -128,7 +128,8 @@ fn build_remote_request(
 ) -> Result<RemoteApiRequest, String> {
     match packet.provider {
         RemoteApiProvider::Anthropic => {
-            let anth_msg = create_anthropic_message(packet.message, state);
+            let anth_msg = create_anthropic_message(packet.message, state)
+                .map_err(|e| format!("Failed to create Anthropic message: {}", e))?;
             kiprintln!("Constructed Anthropic message: {:#?}", anth_msg);
             Ok(RemoteApiRequest {
                 provider: RemoteApiProvider::Anthropic,

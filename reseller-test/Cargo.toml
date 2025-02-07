@@ -17,6 +17,7 @@ alloy-primitives = "0.8.15"
 alloy-sol-types = { version = "0.8.15", features = ["json"] }
 alloy-contract = "0.8.1"
 dotenvy = "0.15.7"
+rmp-serde = "1.3.0"
 
 [lib]
 crate-type = ["cdylib"]

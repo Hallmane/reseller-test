@@ -19,12 +19,18 @@ use serde_json::json;
 ///     body: "".to_string(),
 ///     content: "What is the meaning of life?".to_string()
 /// };
-pub fn create_anthropic_message(content: String, state: &ResellerState) -> AnthropicMessage {
+pub fn create_anthropic_message(content: String, state: &ResellerState) -> Result<AnthropicMessage, String> {
     let endpoint = "https://api.anthropic.com/v1/messages".to_string();
 
     let mut headers = HashMap::new();
     headers.insert("Content-Type".to_string(), "application/json".to_string());
-    headers.insert("x-api-key".to_string(), state.remote_api_keys.get("anthropic").unwrap().to_string());
+    
+    let api_key = state
+        .remote_api_keys
+        .get("anthropic")
+        .ok_or("Missing 'anthropic' API key in state")?
+        .to_string();
+    headers.insert("x-api-key".to_string(), api_key);
     headers.insert("anthropic-version".to_string(), "2023-06-01".to_string());
 
     let body = json!({
@@ -38,10 +44,10 @@ pub fn create_anthropic_message(content: String, state: &ResellerState) -> Anthr
             }
         ]
   });
-    AnthropicMessage { 
+    Ok(AnthropicMessage { 
         endpoint, 
         headers, 
         body: body.to_string(), 
         content 
-    }
+    })
 }

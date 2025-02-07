@@ -19,18 +19,16 @@ use structs::ResellerState;
 
 mod helpers;
 
-fn init_fn(state: &mut ResellerState) {
-    kiprintln!("Initializing reseller-test: discarding old state and creating fresh state");
+fn init_fn(_state: &mut ResellerState) {
+    kiprintln!("Initializing reseller-test");
 
-    let fresh_state = ResellerState::new();
-    *state = fresh_state;
+    //let fresh_state = ResellerState::new();
+    //*state = fresh_state;
 
-    match serde_json::to_vec(state) {
-        Ok(serialized_state) => set_state(&serialized_state),
-        Err(e) => kiprintln!("Failed to serialize state: {}", e),
-    }
-
-    kiprintln!("Fresh ResellerState: {:#?}", state);
+    //match serde_json::to_vec(state) {
+    //    Ok(serialized_state) => set_state(&serialized_state),
+    //    Err(e) => kiprintln!("Failed to serialize state: {}", e),
+    //}
 }
 
 erect! {
