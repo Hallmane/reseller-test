@@ -4,17 +4,19 @@ use serde_json::Value;
 use url::Url;
 
 use crate::function_signatures::UserRequest;
-use kinode_process_lib::http::{
-    Method,
-    StatusCode,
-    Response,
-    server::{
-        //HttpResponse, 
-        send_response
+use kinode_process_lib::{
+    kiprintln,
+    http::{
+        Method,
+        StatusCode,
+        Response,
+        server::{
+            //HttpResponse, 
+            send_response
+        },
+        client::send_request_await_response,
     },
-    client::send_request_await_response,
 };
-use kinode_process_lib::kiprintln;
 use crate::structs::{
     ResellerState,
     ResellerApiPacket,
@@ -23,8 +25,8 @@ use crate::structs::{
     RemoteApiRequest,
     RemoteApiProvider,
     RemoteApiMessage,
-    create_anthropic_message,
 };
+use crate::helpers::create_anthropic_message;
 
 /// Handles incoming HTTP requests.
 pub fn http_handler(
@@ -37,8 +39,11 @@ pub fn http_handler(
     // Process the user request and prepare an appropriate response.
     let response_bytes = match request {
         UserRequest::CallApi(packet) => process_api_call(state, packet),
+        UserRequest::GetNode(name_hash) => get_node(state, name_hash),
+        UserRequest::GetTba(name_hash) => get_tba(state, name_hash),
     };
 
+    // Send the response to the client/user
     send_http_response(
         StatusCode::OK,
         response_bytes.unwrap_or_else(|e| format!("Remote API call failed: {}", e).into_bytes()),
@@ -51,6 +56,7 @@ fn process_api_call(
     packet: ResellerApiPacket,
 ) -> Result<Vec<u8>, String> {
     let remote_response = call_remote_api(state, packet)?;
+
     if remote_response.content.is_empty() {
         return Err("Remote API returned empty content".to_string());
     }
@@ -58,6 +64,36 @@ fn process_api_call(
         response: remote_response.content[0].text.clone(),
     };
     serde_json::to_vec(&response).map_err(|e| format!("Serialization error: {}", e))
+}
+
+/// gets the node from the namehash in the state
+fn get_node(
+    state: &mut ResellerState,
+    name_hash: String,
+) -> Result<Vec<u8>, String> {
+    let Some(namehash) = state.names.get(&name_hash) else {
+        return Err("name not found".to_string());
+    };
+    let Some(node) = state.index.get(namehash) else {
+        return Err("namehash not found".to_string());
+    };
+    serde_json::to_vec(&node).map_err(|e| format!("Serialization error: {}", e))
+}
+
+/// gets the tba from the namehash in the state
+fn get_tba(
+    state: &mut ResellerState,
+    name_hash: String,
+) -> Result<Vec<u8>, String> {
+    let Ok((tba, owner, data)) = state.kimap.get(&name_hash) else {
+        return Err("name not found".to_string());
+    };
+    let info = serde_json::json!({
+        "tba": tba,
+        "owner": owner,
+        "data": data,
+    });
+    serde_json::to_vec(&info).map_err(|e| format!("Serialization error: {}", e))
 }
 
 /// Builds and sends the remote API request, then extracts and deserializes the response body into a RemoteApiResponse.
