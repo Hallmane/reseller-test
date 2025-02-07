@@ -2,12 +2,13 @@
     {
         "process_name": "reseller-test",
         "process_wasm_path": "/reseller-test.wasm",
-        "on_exit": "Restart",
+        "on_exit": "None",
         "request_networking": true,
         "request_capabilities": [
             "http-server:distro:sys",
             "http-client:distro:sys",
-            "vfs:distro:sys"
+            "vfs:distro:sys",
+            "eth:distro:sys"
         ],
         "grant_capabilities": [],
         "public": true
