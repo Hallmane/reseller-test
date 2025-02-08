@@ -1,8 +1,8 @@
+use kinode_app_common::declare_types;
 use serde::{
     Deserialize, 
     Serialize
 };
-use kinode_app_common::declare_types;
 use process_macros::SerdeJsonInto;
 use kinode_process_lib::eth::{
     EthSubResult,
@@ -10,11 +10,12 @@ use kinode_process_lib::eth::{
 };
 
 use crate::structs::{
+    Node,
     ResellerApiPacket,
     ResellerApiResponse,
     RemoteApiResponse,
     RemoteApiRequest,
-    Node
+    ApiKeyUpdate
 };
 
 declare_types! {
@@ -22,11 +23,12 @@ declare_types! {
         CallApi ResellerApiPacket => ResellerApiResponse
         GetNode String => Node
         GetTba String => String
+        UpdateApiKey ApiKeyUpdate => String
     },
     Reseller {
         CallRemoteApi RemoteApiRequest => Result<RemoteApiResponse, String>
     },
     Kinode {
-        Eth EthSub => Result<EthSubResult, String> 
+        Eth EthSub => Result<EthSubResult, String>
     }
 }

@@ -293,6 +293,11 @@ impl ResellerState {
             }
         )
     }
+
+    pub fn add_api_key(&mut self, key: String, value: String) {
+        self.remote_api_keys.insert(key, value);
+        self.save();
+    }
 }
 
 
@@ -459,4 +464,11 @@ pub enum DataKey {
     /// if indexing full history, this will be the note's full history --
     /// it is also possible to receive a snapshot and not have updates from before that.
     Note(Vec<eth::Bytes>),
+}
+
+/// update api key. Which provider, and the value of the key.
+#[derive(Debug, Serialize, Deserialize, SerdeJsonInto, Clone)]
+pub struct ApiKeyUpdate {
+    pub provider: RemoteApiProvider,
+    pub key: String,
 }

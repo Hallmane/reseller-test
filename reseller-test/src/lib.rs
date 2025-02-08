@@ -13,7 +13,6 @@ use http_handlers::http_handler;
 mod local_handlers;
 use local_handlers::local_handler;
 
-
 mod structs;
 use structs::ResellerState;
 
@@ -22,13 +21,6 @@ mod helpers;
 fn init_fn(_state: &mut ResellerState) {
     kiprintln!("Initializing reseller-test");
 
-    //let fresh_state = ResellerState::new();
-    //*state = fresh_state;
-
-    //match serde_json::to_vec(state) {
-    //    Ok(serialized_state) => set_state(&serialized_state),
-    //    Err(e) => kiprintln!("Failed to serialize state: {}", e),
-    //}
 }
 
 erect! {

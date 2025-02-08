@@ -4,18 +4,14 @@ use serde_json::Value;
 use url::Url;
 
 use crate::function_signatures::UserRequest;
+
 use kinode_process_lib::{
-    kiprintln,
     http::{
-        Method,
-        StatusCode,
-        Response,
-        server::{
+        client::send_request_await_response, server::{
             //HttpResponse, 
-            send_response
-        },
-        client::send_request_await_response,
-    },
+            send_response, HttpServerError
+        }, Method, Response, StatusCode
+    }, kiprintln
 };
 use crate::structs::{
     ResellerState,
@@ -25,6 +21,7 @@ use crate::structs::{
     RemoteApiRequest,
     RemoteApiProvider,
     RemoteApiMessage,
+    ApiKeyUpdate
 };
 use crate::helpers::create_anthropic_message;
 
@@ -36,12 +33,18 @@ pub fn http_handler(
 ) {
     kiprintln!("HTTP request received at path: {:?}", path);
 
-    // Process the user request and prepare an appropriate response.
+    // Process the server request and prepare an appropriate response.
     let response_bytes = match request {
-        UserRequest::CallApi(packet) => process_api_call(state, packet),
-        UserRequest::GetNode(name_hash) => get_node(state, name_hash),
-        UserRequest::GetTba(name_hash) => get_tba(state, name_hash),
+            UserRequest::CallApi(packet) => process_api_call(state, packet),
+            UserRequest::GetNode(name_hash) => get_node(state, name_hash),
+            UserRequest::GetTba(name_hash)  => get_tba(state, name_hash),
+            UserRequest::UpdateApiKey(update) => update_api_key(state, update),
     };
+    //let response_bytes = match request {
+    //    UserRequest::CallApi(packet) => process_api_call(state, packet),
+    //    UserRequest::GetNode(name_hash) => get_node(state, name_hash),
+    //    UserRequest::GetTba(name_hash) => get_tba(state, name_hash),
+    //};
 
     // Send the response to the client/user
     send_http_response(
@@ -119,6 +122,22 @@ fn call_remote_api(
 
     serde_json::from_slice(body_bytes)
         .map_err(|e| format!("Deserialization error: {}", e))
+}
+
+/// Updates the API key in the state.
+fn update_api_key(
+    state: &mut ResellerState,
+    update: ApiKeyUpdate,
+) -> Result<Vec<u8>, String> {
+    match update.provider {
+        RemoteApiProvider::Anthropic => {
+            state.remote_api_keys.insert(update.key.clone(), update.key.clone());
+            Ok("API key updated".to_string().into_bytes())
+        }
+        _ => {
+            Ok("Unsupported provider".to_string().into_bytes())
+        }
+    }
 }
 
 /// Builds the remote API request based on the provider specified in the packet.

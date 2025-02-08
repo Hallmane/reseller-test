@@ -10,7 +10,9 @@
             "vfs:distro:sys",
             "eth:distro:sys"
         ],
-        "grant_capabilities": [],
+        "grant_capabilities": [
+            "vfs:distro:sys"
+        ],
         "public": true
     }
 ]
