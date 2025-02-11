@@ -2,7 +2,6 @@ use serde::{
     Deserialize, 
     Serialize
 };
-use serde_json::json;
 use std::collections::{
     HashMap,
     BTreeSet,
@@ -40,15 +39,29 @@ pub struct ResellerState {
 
 impl State for ResellerState {
     fn new() -> Self {
-        dotenv().ok(); 
+        dotenv().ok();
         let mut remote_api_keys = HashMap::new();
-        if let Ok(anthropic_key) = env::var("ANTHROPIC_API_KEY") {
-            println!("anthropic_key: {anthropic_key}");
-            remote_api_keys.insert("anthropic".to_string(), anthropic_key);
+
+        // Check for ANTHROPIC_API_KEY and print if found or not.
+        match env::var("ANTHROPIC_API_KEY") {
+            Ok(api_key) => {
+                kiprintln!("Found ANTHROPIC_API_KEY: {}", api_key);
+                remote_api_keys.insert("anthropic".to_string(), api_key);
+            }
+            Err(e) => {
+                kiprintln!("ANTHROPIC_API_KEY not found: {}", e);
+            }
         }
-        if let Ok(openai_key) = env::var("OPENAI_API_KEY") {
-            println!("openai_key: {openai_key}");
-            remote_api_keys.insert("openai".to_string(), openai_key);
+
+        // Check for OPENAI_API_KEY and print if found or not.
+        match env::var("OPENAI_API_KEY") {
+            Ok(api_key) => {
+                kiprintln!("Found OPENAI_API_KEY: {}", api_key);
+                remote_api_keys.insert("openai".to_string(), api_key);
+            }
+            Err(e) => {
+                kiprintln!("OPENAI_API_KEY not found: {}", e);
+            }
         }
 
         let kimap = kimap::Kimap::default(60);
@@ -81,13 +94,13 @@ impl State for ResellerState {
                 Ok(logs) => {
                     for log in logs {
                         if let Err(e) = fresh_state.handle_log(&log) {
-                            println!("log-handling error! {e:?}");
+                            kiprintln!("log-handling error! {e:?}");
                         }
                     }
                     break;
                 }
                 Err(e) => {
-                    println!("got eth error while fetching logs: {e:?}, trying again in 5s...");
+                    kiprintln!("got eth error while fetching logs: {e:?}, trying again in 5s...");
                     std::thread::sleep(std::time::Duration::from_secs(5));
                     continue;
                 }
@@ -295,7 +308,10 @@ impl ResellerState {
     }
 
     pub fn add_api_key(&mut self, key: String, value: String) {
-        self.remote_api_keys.insert(key, value);
+        kiprintln!("Current state of remote_api_keys: {:#?}", self.remote_api_keys);
+        // Update the in-memory state.
+        kiprintln!("Adding API key: {key} = {value}");
+        self.remote_api_keys.insert(key.clone(), value.clone());
         self.save();
     }
 }

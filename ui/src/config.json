@@ -1,0 +1,19 @@
+{
+  "chain": {
+    "id": 10
+  },
+  "optimism": {
+    "contracts": {
+      "kimap": "0xcA92476B2483aBD5D82AEBF0b56701Bb2e9be658",
+      "kino_account_impl": "0x38766C70a4FB2f23137D9251a1aA12b1143fC716",
+      "test_api_registry_os_tba": "",
+      "api_registry_impl": "0xEcDB5e6a0Dc46FBCC004CB23a88dFC0822Cdc9d2",
+      "reseller_impl": "0xf410864FF8c7191707d29384cD02A838f2a42123",
+      "api_registry_tba": "0x300174aBA9fB8912A8667eF2a818D959933428b0"
+    },
+    "data": {
+      "last_api_registry_name": "zapi-registry1111",
+      "root_node": "test-api-registry.os"
+    }
+  }
+}

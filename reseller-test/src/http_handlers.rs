@@ -2,6 +2,8 @@ use std::collections::HashMap;
 use serde::Serialize;
 use serde_json::Value;
 use url::Url;
+use std::collections::BTreeSet;
+use std::collections::BTreeMap;
 
 use crate::function_signatures::UserRequest;
 
@@ -9,8 +11,12 @@ use kinode_process_lib::{
     http::{
         client::send_request_await_response, server::{
             //HttpResponse, 
-            send_response, HttpServerError
-        }, Method, Response, StatusCode
+            send_response, 
+            HttpServerError
+        }, 
+        Method, 
+        Response, 
+        StatusCode
     }, kiprintln
 };
 use crate::structs::{
@@ -21,7 +27,8 @@ use crate::structs::{
     RemoteApiRequest,
     RemoteApiProvider,
     RemoteApiMessage,
-    ApiKeyUpdate
+    ApiKeyUpdate,
+    DataKey
 };
 use crate::helpers::create_anthropic_message;
 
@@ -74,13 +81,29 @@ fn get_node(
     state: &mut ResellerState,
     name_hash: String,
 ) -> Result<Vec<u8>, String> {
-    let Some(namehash) = state.names.get(&name_hash) else {
-        return Err("name not found".to_string());
+    let node = state
+        .index
+        .get(&name_hash)
+        .ok_or_else(|| format!("Node not found for hash: {}", name_hash))?;
+
+    // Create a response structure that matches the frontend's expected Node type
+    #[derive(Serialize)]
+    struct NodeResponse {
+        name: String,
+        parent_path: String,
+        child_names: BTreeSet<String>,
+        data_keys: BTreeMap<String, DataKey>,
+    }
+
+    let response = NodeResponse {
+        name: node.name.clone(),
+        parent_path: node.parent_path.clone(),
+        child_names: node.child_names.clone(),
+        data_keys: node.data_keys.clone(),
     };
-    let Some(node) = state.index.get(namehash) else {
-        return Err("namehash not found".to_string());
-    };
-    serde_json::to_vec(&node).map_err(|e| format!("Serialization error: {}", e))
+
+    serde_json::to_vec(&response)
+        .map_err(|e| format!("Failed to serialize node: {}", e))
 }
 
 /// gets the tba from the namehash in the state
@@ -131,7 +154,8 @@ fn update_api_key(
 ) -> Result<Vec<u8>, String> {
     match update.provider {
         RemoteApiProvider::Anthropic => {
-            state.remote_api_keys.insert(update.key.clone(), update.key.clone());
+            //state.remote_api_keys.insert(update.key.clone(), update.key.clone());
+            state.add_api_key(update.key.clone(), update.key.clone());
             Ok("API key updated".to_string().into_bytes())
         }
         _ => {

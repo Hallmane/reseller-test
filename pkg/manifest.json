@@ -11,7 +11,8 @@
             "eth:distro:sys"
         ],
         "grant_capabilities": [
-            "vfs:distro:sys"
+            "vfs:distro:sys",
+            "eth:distro:sys"
         ],
         "public": true
     }

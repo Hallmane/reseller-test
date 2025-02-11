@@ -24,10 +24,9 @@ a:hover {
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
   min-width: 320px;
   min-height: 100vh;
+  display: block;
 }
 
 h1 {
@@ -69,4 +68,263 @@ button:focus-visible {
   a:hover {
     color: #747bff;
   }
+}
+
+/* Tree Structure Styles */
+.tree-container {
+  text-align: left;
+  padding: 20px;
+  font-family: monospace;
+}
+
+.node {
+  margin: 4px 0;
+  padding-left: 20px;
+  border-left: 1px solid #444;
+}
+
+.node-header {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.node-header:hover {
+  background-color: rgba(100, 108, 255, 0.1);
+}
+
+.arrow {
+  width: 12px;
+  height: 12px;
+  border-right: 2px solid #646cff;
+  border-bottom: 2px solid #646cff;
+  transform: rotate(-45deg);
+  transition: transform 0.2s;
+  margin-right: 8px;
+  display: inline-block;
+}
+
+.arrow.expanded {
+  transform: rotate(45deg);
+}
+
+.arrow-hidden {
+  width: 12px;
+  height: 12px;
+  margin-right: 8px;
+  display: inline-block;
+}
+
+.node-name {
+  color: #646cff;
+  margin-right: 8px;
+  font-weight: 500;
+}
+
+.node-info {
+  color: #888;
+  font-size: 0.9em;
+}
+
+.info-button {
+  padding: 4px 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+
+.info-button:hover {
+  background: rgba(100, 108, 255, 0.1);
+}
+
+.info-container {
+  margin: 8px 0;
+  padding: 12px;
+  background: rgba(100, 108, 255, 0.05);
+  border-radius: 4px;
+  border-left: 3px solid #646cff;
+  overflow-x: auto;
+  flex: 1;
+  min-width: 0;
+  position: relative;
+}
+
+.child-nodes {
+  border-left: 1px dashed #444;
+  margin-left: 6px;
+}
+
+.data-keys {
+  margin-top: 8px;
+  padding: 8px;
+  background: rgba(100, 108, 255, 0.03);
+  border-radius: 4px;
+}
+
+.data-key {
+  padding: 4px 8px;
+  margin: 4px 0;
+  border-radius: 4px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+}
+
+.data-key-label {
+  flex: 0 0 200px;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 4px 0;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 16px;
+  gap: 8px;
+}
+
+.pagination button {
+  padding: 4px 12px;
+  font-size: 0.9em;
+}
+
+.pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .node {
+    border-left-color: #555;
+  }
+  
+  .child-nodes {
+    border-left-color: #555;
+  }
+  
+  .info-container {
+    background: rgba(100, 108, 255, 0.1);
+  }
+  
+  .node-header:hover {
+    background-color: rgba(100, 108, 255, 0.15);
+  }
+}
+
+/* JSON/OpenAPI Display Styles */
+.note-history {
+  font-family: monospace;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.note-revision {
+  padding: 8px;
+  margin: 4px 0;
+  background: rgba(30, 30, 40, 0.4);
+  border-radius: 4px;
+}
+
+.revision-number {
+  color: #646cff;
+  font-weight: bold;
+  margin-right: 8px;
+}
+
+/* JSON syntax highlighting */
+.json-string { color: #a8ff60; }
+.json-number { color: #ff9d00; }
+.json-boolean { color: #ff628c; }
+.json-null { color: #ff628c; }
+.json-key { color: #5ccfe6; }
+.json-bracket { color: #888; }
+.json-brace { color: #888; }
+
+/* Indent guides */
+.note-revision {
+  position: relative;
+}
+
+.note-revision::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #646cff;
+  opacity: 0.3;
+  border-radius: 2px;
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .note-revision {
+    background: rgba(40, 40, 50, 0.4);
+  }
+  
+  .json-string { color: #b8ff80; }
+  .json-number { color: #ffbd40; }
+  .json-boolean { color: #ff82a6; }
+  .json-null { color: #ff82a6; }
+  .json-key { color: #7cdfff; }
+}
+
+/* Update root container width */
+#root {
+  max-width: none;
+  width: 100%;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.explorer-container {
+  width: 100%;
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+.container {
+  width: 100%;
+  max-width: none;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.copy-button {
+  padding: 4px 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1em;
+  transition: all 0.2s;
+  opacity: 0.6;
+}
+
+.copy-button:hover {
+  opacity: 1;
+}
+
+.copy-button.success {
+  color: #4caf50;
+  opacity: 1;
+}
+
+.note-history-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
 }

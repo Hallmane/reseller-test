@@ -1,7 +1,6 @@
 use kinode_app_common::{erect, Binding, State};
 use kinode_process_lib::{
     kiprintln,
-    set_state,
     http::server::HttpBindingConfig,
 };
 
