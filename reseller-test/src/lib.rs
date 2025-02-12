@@ -30,7 +30,7 @@ erect! {
     endpoints: [
         Binding::Http {
             path: "/api",
-            config: HttpBindingConfig::new(false, true, false, None),
+            config: HttpBindingConfig::new(false, false, false, None),
         },
     ],
     handlers: {

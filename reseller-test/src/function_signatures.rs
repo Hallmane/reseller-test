@@ -12,7 +12,7 @@ use kinode_process_lib::eth::{
 use crate::structs::{
     Node,
     ResellerApiPacket,
-    ResellerApiResponse,
+    //ResellerApiResponse,
     RemoteApiResponse,
     RemoteApiRequest,
     ApiKeyUpdate
@@ -20,7 +20,7 @@ use crate::structs::{
 
 declare_types! {
     User {
-        CallApi ResellerApiPacket => ResellerApiResponse
+        CallApi ResellerApiPacket => String
         GetNode String => Node
         GetTba String => String
         UpdateApiKey ApiKeyUpdate => String
@@ -30,5 +30,6 @@ declare_types! {
     },
     Kinode {
         Eth EthSub => Result<EthSubResult, String>
+        StateLog String => String
     }
 }

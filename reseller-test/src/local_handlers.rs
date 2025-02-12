@@ -27,9 +27,15 @@ pub fn local_handler(
     match request {
         KinodeRequest::Eth(eth_sub) => {
             match handle_eth(state, eth_sub) {
-                Ok(()) => {}
+                Ok(()) => {kiprintln!("Successfully handled eth arm")}
                 Err(e) => kiprintln!("Error handling eth arm: {:?}", e)
             }
+        }
+        KinodeRequest::StateLog(state_log) => {
+            kiprintln!("Received state log: {:?}", state_log);
+        }
+        _ => {
+            kiprintln!("Received unhandled kinode request: {:?}", request);
         }
     }
 }

@@ -312,6 +312,7 @@ impl ResellerState {
         // Update the in-memory state.
         kiprintln!("Adding API key: {key} = {value}");
         self.remote_api_keys.insert(key.clone(), value.clone());
+        kiprintln!("Updated state of remote_api_keys: {:#?}", self.remote_api_keys);
         self.save();
     }
 }
@@ -343,6 +344,27 @@ pub struct ResellerApiPacket {
 #[derive(Debug, Serialize, Deserialize, SerdeJsonInto, Clone)]
 pub struct ResellerApiResponse {
     pub response: String
+}
+
+/// A response from the reseller to the user
+/// 
+/// # Example
+/// ```
+/// let response = ListAllAPIsResponse {
+///     apis: vec![' "title": "LLM Proxy API",
+///     "version": "1.0.0",
+///     "description": "A proxy service that standardizes interactions with various LLM providers.\nCurrently supports Anthropic and OpenAI as providers.",
+///     "x-api-type": "REST",
+///     "x-protocol": "HTTP",
+///     "x-architecture": {
+///       "type": "Microservice",
+///       "style": "Request-Response"
+///     }'],
+/// };
+/// ```
+#[derive(Debug, Serialize, Deserialize, SerdeJsonInto, Clone)]
+pub struct ListAllAPIsResponse {
+    pub apis: Vec<String>
 }
 
 /// A response from the remote API

@@ -1,5 +1,5 @@
 export interface ResellerApiPacket {
-    provider: 'OpenAi' | 'Anthropic';
+    provider: 'Anthropic' | 'OpenAi';
     message: string;
 }
 
@@ -11,3 +11,9 @@ export interface ApiKeyUpdate {
     provider: 'Anthropic' | 'OpenAi';
     key: string;
   }
+
+export type HttpResponse = {
+  Json?: ResellerApiResponse;
+  Node?: Node;
+  Text?: string;
+}

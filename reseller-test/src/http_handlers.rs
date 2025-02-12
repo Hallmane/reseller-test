@@ -2,8 +2,6 @@ use std::collections::HashMap;
 use serde::Serialize;
 use serde_json::Value;
 use url::Url;
-use std::collections::BTreeSet;
-use std::collections::BTreeMap;
 
 use crate::function_signatures::UserRequest;
 
@@ -12,7 +10,7 @@ use kinode_process_lib::{
         client::send_request_await_response, server::{
             //HttpResponse, 
             send_response, 
-            HttpServerError
+            //HttpServerError
         }, 
         Method, 
         Response, 
@@ -28,9 +26,19 @@ use crate::structs::{
     RemoteApiProvider,
     RemoteApiMessage,
     ApiKeyUpdate,
-    DataKey
+    //DataKey,
+    Node
 };
 use crate::helpers::create_anthropic_message;
+
+/// Add this enum near the top with your other types
+#[derive(Serialize)]
+#[serde(untagged)]
+enum HttpResponse {
+    Json(ResellerApiResponse),
+    Node(Node),
+    Text(String),
+}
 
 /// Handles incoming HTTP requests.
 pub fn http_handler(
@@ -39,71 +47,58 @@ pub fn http_handler(
     request: UserRequest,
 ) {
     kiprintln!("HTTP request received at path: {:?}", path);
+    kiprintln!("Request: {:#?}", request);
 
-    // Process the server request and prepare an appropriate response.
-    let response_bytes = match request {
-            UserRequest::CallApi(packet) => process_api_call(state, packet),
-            UserRequest::GetNode(name_hash) => get_node(state, name_hash),
-            UserRequest::GetTba(name_hash)  => get_tba(state, name_hash),
-            UserRequest::UpdateApiKey(update) => update_api_key(state, update),
+    // Process the server request and prepare an appropriate response
+    let (status, response) = match request {
+        UserRequest::CallApi(packet) => match process_api_call(state, packet) {
+            Ok(resp) => (StatusCode::OK, HttpResponse::Json(resp)),
+            Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, HttpResponse::Text(e)),
+        },
+        UserRequest::GetNode(name_hash) => match get_node(state, name_hash) {
+            Ok(resp) => (StatusCode::OK, HttpResponse::Node(resp)),
+            Err(e) => (StatusCode::NOT_FOUND, HttpResponse::Text(e)),
+        },
+        UserRequest::GetTba(name_hash) => match get_tba(state, name_hash) {
+            Ok(bytes) => (StatusCode::OK, HttpResponse::Text(String::from_utf8_lossy(&bytes).into_owned())),
+            Err(e) => (StatusCode::NOT_FOUND, HttpResponse::Text(e)),
+        },
+        UserRequest::UpdateApiKey(update) => match update_api_key(state, update) {
+            Ok(bytes) => (StatusCode::OK, HttpResponse::Text(String::from_utf8_lossy(&bytes).into_owned())),
+            Err(e) => (StatusCode::BAD_REQUEST, HttpResponse::Text(e)),
+        },
     };
-    //let response_bytes = match request {
-    //    UserRequest::CallApi(packet) => process_api_call(state, packet),
-    //    UserRequest::GetNode(name_hash) => get_node(state, name_hash),
-    //    UserRequest::GetTba(name_hash) => get_tba(state, name_hash),
-    //};
 
     // Send the response to the client/user
-    send_http_response(
-        StatusCode::OK,
-        response_bytes.unwrap_or_else(|e| format!("Remote API call failed: {}", e).into_bytes()),
-    );
+    send_http_response(status, response);
 }
 
 /// Processes the API call from the client.
 fn process_api_call(
     state: &mut ResellerState,
     packet: ResellerApiPacket,
-) -> Result<Vec<u8>, String> {
+) -> Result<ResellerApiResponse, String> {
     let remote_response = call_remote_api(state, packet)?;
 
     if remote_response.content.is_empty() {
         return Err("Remote API returned empty content".to_string());
     }
-    let response = ResellerApiResponse {
+    Ok(ResellerApiResponse {
         response: remote_response.content[0].text.clone(),
-    };
-    serde_json::to_vec(&response).map_err(|e| format!("Serialization error: {}", e))
+    })
 }
 
 /// gets the node from the namehash in the state
 fn get_node(
     state: &mut ResellerState,
     name_hash: String,
-) -> Result<Vec<u8>, String> {
+) -> Result<Node, String> {
     let node = state
         .index
         .get(&name_hash)
         .ok_or_else(|| format!("Node not found for hash: {}", name_hash))?;
 
-    // Create a response structure that matches the frontend's expected Node type
-    #[derive(Serialize)]
-    struct NodeResponse {
-        name: String,
-        parent_path: String,
-        child_names: BTreeSet<String>,
-        data_keys: BTreeMap<String, DataKey>,
-    }
-
-    let response = NodeResponse {
-        name: node.name.clone(),
-        parent_path: node.parent_path.clone(),
-        child_names: node.child_names.clone(),
-        data_keys: node.data_keys.clone(),
-    };
-
-    serde_json::to_vec(&response)
-        .map_err(|e| format!("Failed to serialize node: {}", e))
+    Ok(node.clone())
 }
 
 /// gets the tba from the namehash in the state
@@ -155,7 +150,7 @@ fn update_api_key(
     match update.provider {
         RemoteApiProvider::Anthropic => {
             //state.remote_api_keys.insert(update.key.clone(), update.key.clone());
-            state.add_api_key(update.key.clone(), update.key.clone());
+            state.add_api_key("anthropic".to_string(), update.key.clone());
             Ok("API key updated".to_string().into_bytes())
         }
         _ => {
