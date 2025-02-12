@@ -127,8 +127,9 @@ export const NodeElement: React.FC<NodeElementProps> = ({
   // After loading, if no node was found
   if (!node) return null;
 
-  const hasChildren =
-    node.child_names.length > 0 || Object.keys(node.data_keys).length > 0;
+  const hasChildren = node && (
+    (node.child_names?.length > 0 || Object.keys(node?.data_keys || {}).length > 0)
+  );
 
   return (
     <div className="node" data-name={name}>

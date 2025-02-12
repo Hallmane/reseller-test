@@ -48,8 +48,14 @@ function App() {
       if (!result.ok)
         throw new Error(`HTTP error! status: ${result.status}`);
 
-      const data: ResellerApiResponse = await result.json();
-      setResponse(data.response);
+      const data = await result.json();
+      if ('Json' in data) {
+        setResponse(data.Json.response);
+      } else if ('Text' in data) {
+        setResponse(data.Text);
+      } else {
+        throw new Error('Unexpected response format');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
@@ -84,9 +90,10 @@ function App() {
   };
 
   return (
-    <div className="container">
+    <>
       <ConnectButton />
-      <h1>API Reseller Test Interface</h1>
+      <div className="container">
+        <h1>API Reseller Test Interface</h1>
       <div className="tabs">
         <button
           onClick={() => setActiveTab("message")}
@@ -130,6 +137,7 @@ function App() {
         </>
       )}
     </div>
+    </>
   );
 }
 
