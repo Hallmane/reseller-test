@@ -81,7 +81,11 @@ function App() {
         throw new Error(`HTTP error! status: ${result.status}`);
 
       const data = await result.json();
-      setKeyResponse(data.response);
+      if ('Text' in data) {
+        setKeyResponse(data.Text);
+      } else {
+        throw new Error('Unexpected response format');
+      }
     } catch (err) {
       setKeyError(err instanceof Error ? err.message : "An error occurred");
     } finally {

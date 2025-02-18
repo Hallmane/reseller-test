@@ -1,11 +1,16 @@
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: monospace;
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  /* Simple monochrome color scheme - light theme */
+  --bg-color: #ffffff;
+  --text-color: #1a1a1a;
+  --border-color: #dddddd;
+  --hover-color: #f0f0f0;
+
+  color: var(--text-color);
+  background-color: var(--bg-color);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -13,61 +18,45 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  display: block;
+}
+
+/* Simple link styling */
+a {
+  color: #1a1a1a;
+  text-decoration: underline;
+}
+
+a:hover {
+  opacity: 0.8;
+}
+
+/* Typography */
+h1, h2, h3 {
+  font-weight: 400;
 }
 
 h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+  font-size: 2em;
+  margin-bottom: 1rem;
 }
 
-ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
+/* Remove default styles */
 button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  background-color: darkblue;
-  color: white;
-  font-size: 1em;
-  font-weight: 500;
   font-family: inherit;
-  cursor: pointer;
-  transition: background-color 0.25s;
-}
-button:hover {
-  background-color: blue;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
+/* Classic terminal JSON formatting */
+.json-string { color: #000000; }
+.json-number { color: #000000; }
+.json-boolean { color: #000000; }
+.json-null { color: #000000; }
+.json-key { 
+  color: #000000;
+  font-weight: bold; 
 }
 
 /* Tree Structure Styles */
@@ -231,8 +220,9 @@ button:focus-visible {
 .note-revision {
   padding: 8px;
   margin: 4px 0;
-  background: rgba(30, 30, 40, 0.4);
+  background: #000000;
   border-radius: 4px;
+  color: #ffffff;
 }
 
 .revision-number {
@@ -241,14 +231,30 @@ button:focus-visible {
   margin-right: 8px;
 }
 
-/* JSON syntax highlighting */
-.json-string { color: #a8ff60; }
-.json-number { color: #ff9d00; }
-.json-boolean { color: #ff628c; }
-.json-null { color: #ff628c; }
-.json-key { color: #5ccfe6; }
-.json-bracket { color: #888; }
-.json-brace { color: #888; }
+/* Terminal-style JSON colors */
+.note-history .note-revision { color: #ffffff; }
+.note-history .note-revision .json-string { color: #98c379; }
+.note-history .note-revision .json-number { color: #d19a66; }
+.note-history .note-revision .json-boolean { color: #c678dd; }
+.note-history .note-revision .json-null { color: #e06c75; }
+.note-history .note-revision .json-key { 
+  color: #61afef;
+  font-weight: bold; 
+}
+.note-history .note-revision .json-brace { color: #ffffff; }
+.note-history .note-revision .json-bracket { color: #ffffff; }
+
+/* Regular JSON colors (outside terminal) */
+div:not(.note-revision) .json-string { color: #000000; }
+div:not(.note-revision) .json-number { color: #000000; }
+div:not(.note-revision) .json-boolean { color: #000000; }
+div:not(.note-revision) .json-null { color: #000000; }
+div:not(.note-revision) .json-key { 
+  color: #000000;
+  font-weight: bold; 
+}
+div:not(.note-revision) .json-brace { color: #000000; }
+div:not(.note-revision) .json-bracket { color: #000000; }
 
 /* Indent guides */
 .note-revision {
@@ -327,4 +333,14 @@ button:focus-visible {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 8px;
+}
+
+/* JSON formatting for non-terminal displays */
+div:not(.response) .json-string { color: #000000; }
+div:not(.response) .json-number { color: #000000; }
+div:not(.response) .json-boolean { color: #000000; }
+div:not(.response) .json-null { color: #000000; }
+div:not(.response) .json-key { 
+  color: #000000;
+  font-weight: bold; 
 }
