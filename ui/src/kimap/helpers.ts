@@ -37,19 +37,24 @@ export async function fetchNode(name: string) {
 }
 
 export async function fetchNodeInfo(name: string) {
+  console.log("Fetching node info for:", name);
   const response = await fetch(API_PATH, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      GetTba: name,
+      GetTba: namehash(name),
     }),
   });
 
   const data = await response.json();
   console.log('Received response:', data);
-  if ('Text' in data) {
+  
+  if (data.tba && data.owner) {
+    // Direct JSON response
+    return data;
+  } else if ('Text' in data) {
     try {
       return JSON.parse(data.Text);
     } catch (e) {

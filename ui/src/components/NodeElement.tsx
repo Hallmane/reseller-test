@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import InfoContainer from "./InfoContainer";
-import { fetchNode } from "../kimap/helpers";
+import { fetchNode, fetchNodeInfo } from "../kimap/helpers";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { useAddRecentTransaction } from "@rainbow-me/rainbowkit";
 import { DataKeyElement, DataKey } from "./DataKeyElement";
@@ -53,8 +53,30 @@ export const NodeElement: React.FC<NodeElementProps> = ({
   const { address } = useAccount();
 
   useEffect(() => {
-    fetchNodeData();
-  }, [name]);
+    const fetchData = async () => {
+      try {
+        const data = await fetchNode(name);
+        setNode(data);
+        
+        // Only fetch TBA info for API registries and resellers
+        const segments = name.split(".").length;
+        if ((segments === 3 || segments === 4) && parentTba) {
+          try {
+            const infoData = await fetchNodeInfo(name);
+            setInfo(infoData);
+          } catch (infoError) {
+            console.error("Error fetching node info:", infoError);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching node:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchData();
+  }, [name, parentTba]);
 
   // NOTE: the commented code that follows is likely useful boilerplate for the future
 
@@ -98,17 +120,6 @@ export const NodeElement: React.FC<NodeElementProps> = ({
   //     });
   //   }
   // };
-
-  const fetchNodeData = async () => {
-    try {
-      const data = await fetchNode(name);
-      setNode(data);
-    } catch (error) {
-      console.error("Error fetching node:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const toggleExpanded = () => setExpanded(!expanded);
   const toggleInfo = () => setInfoVisible(!infoVisible);
@@ -158,14 +169,13 @@ export const NodeElement: React.FC<NodeElementProps> = ({
             toggleExpanded();
           }}
         >
-          ℹ️
         </button>
       </div>
       {infoVisible && (
         <div className="info-container">
           <InfoContainer
             name={name}
-            refetchNode={fetchNodeData}
+            refetchNode={() => {}} // TODO: add a way to get new information when it settles on chain
             info={info}
             setInfo={setInfo}
             openConnectModal={openConnectModal}

@@ -16,10 +16,10 @@ import '@rainbow-me/rainbowkit/styles.css';
 const BASE_URL = import.meta.env.BASE_URL;
 if (window.our) window.our.process = BASE_URL?.replace("/", "");
 
-type ActiveTab = "message" | "apikey" | "explorer";
+type ActiveTab = "api test" | "apikey" | "explorer";
 
 function App() {
-  const [activeTab, setActiveTab] = useState<ActiveTab>("message");
+  const [activeTab, setActiveTab] = useState<ActiveTab>("api test");
 
   // ------ State for Call API ---
   const [response, setResponse] = useState("");
@@ -100,10 +100,10 @@ function App() {
         <h1>API Reseller Test Interface</h1>
       <div className="tabs">
         <button
-          onClick={() => setActiveTab("message")}
-          className={activeTab === "message" ? "active" : ""}
+          onClick={() => setActiveTab("api test")}
+          className={activeTab === "api test" ? "active" : ""}
         >
-          Send Message
+          API Test
         </button>
         <button
           onClick={() => setActiveTab("apikey")}
@@ -115,11 +115,11 @@ function App() {
           onClick={() => setActiveTab("explorer")}
           className={activeTab === "explorer" ? "active" : ""}
         >
-          Explore Nodes
+          Hypermap API Explorer
         </button>
       </div>
 
-      {activeTab === "message" && (
+      {activeTab === "api test" && (
         <>
           <MessageForm onSubmit={handleSubmit} isLoading={isLoading} />
           <ErrorMessage error={error} />

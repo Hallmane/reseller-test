@@ -30,6 +30,7 @@ const InfoContainer: React.FC<InfoContainerProps> = ({
   addRecentTransaction,
   address,
 }) => {
+  console.log("InfoContainer name:", name, "segments:", name.split(".").length);
   const [resellerName, setResellerName] = useState("");
   const [apiName, setApiName] = useState("~");
   const [apiSpec, setApiSpec] = useState("");
@@ -186,32 +187,36 @@ const InfoContainer: React.FC<InfoContainerProps> = ({
     });
   };
 
-  useEffect(() => {
-    fetchInfo();
-  }, [name]);
+  //useEffect(() => {
+  //  fetchInfo();
+  //}, [name]);
 
-  const fetchInfo = async () => {
-    try {
-      const data = await fetchNodeInfo(name);
-      // If data is a byte array, decode it
-      if (Array.isArray(data)) {
-        const decoded = String.fromCharCode(...data);
-        setInfo(JSON.parse(decoded));
-      } else {
-        setInfo(data);
-      }
-    } catch (error) {
-      console.error("Error fetching node info:", error);
-    }
-  };
+  //const fetchInfo = async () => {
+  //  try {
+  //    const data = await fetchNodeInfo(name);
+  //    // If data is a byte array, decode it
+  //    if (Array.isArray(data)) {
+  //      const decoded = String.fromCharCode(...data);
+  //      setInfo(JSON.parse(decoded));
+  //    } else {
+  //      setInfo(data);
+  //    }
+  //  } catch (error) {
+  //    console.error("Error fetching node info:", error);
+  //  }
+  //};
+
+  console.log("Info state:", info);
 
   if (!info) return null;
 
   const isOwner = address && info.owner && 
     info.owner.toLowerCase() === address.toLowerCase();
 
+  console.log("Name:", name, "Segments:", name.split(".").length);
+
   return (
-    <div>
+    <div className="note-input-container" style={{background: "black"}}>
       <div>
         Owner: {info.owner}
         {isOwner && <span className="owner-tag">(you)</span>}
@@ -219,7 +224,8 @@ const InfoContainer: React.FC<InfoContainerProps> = ({
       <div>TBA: {info.tba}</div>
       {info.data_hex && <div>Data Hex: {info.data_hex}</div>}
       <div className="note-input-container">
-        {name.split(".").length === 3 && (
+        {/*name.split(".").length === 4 && (*/(
+          console.log("note-input-container should appear. This is the name:", name),
           <div className="note-input-subcontainer">
             <input
               type="text"
