@@ -70,6 +70,7 @@ export function namehash(name: string): Hex {
 
   if (name && name !== "") {
     const labels = name.split(".").reverse();
+
     for (const label of labels) {
       const labelHash = keccak256(toBytes(label));
       node = keccak256(concat([node, labelHash]));
