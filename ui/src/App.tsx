@@ -97,9 +97,9 @@ function App() {
     <>
       <ConnectButton />
       <div className="container">
-        <h1>API Reseller Test Interface</h1>
+        <h1>Hypermap Example Interface</h1>
       <div className="tabs">
-        <button
+        {/* <button
           onClick={() => setActiveTab("api test")}
           className={activeTab === "api test" ? "active" : ""}
         >
@@ -110,16 +110,16 @@ function App() {
           className={activeTab === "apikey" ? "active" : ""}
         >
           Update API Key
-        </button>
+        </button> */}
         <button
           onClick={() => setActiveTab("explorer")}
           className={activeTab === "explorer" ? "active" : ""}
         >
-          Hypermap API Explorer
+          Hypermap Explorer
         </button>
       </div>
 
-      {activeTab === "api test" && (
+      {/* {activeTab === "api test" && (
         <>
           <MessageForm onSubmit={handleSubmit} isLoading={isLoading} />
           <ErrorMessage error={error} />
@@ -133,7 +133,7 @@ function App() {
           <ErrorMessage error={keyError} />
           <ResponseDisplay response={keyResponse} />
         </>
-      )}
+      )} */}
 
       {activeTab === "explorer" && (
         <>

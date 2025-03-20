@@ -130,17 +130,6 @@ button {
   background: rgba(100, 108, 255, 0.1);
 }
 
-.info-container {
-  margin: 8px 0;
-  padding: 12px;
-  background: rgba(100, 108, 255, 0.05);
-  border-radius: 4px;
-  border-left: 3px solid #646cff;
-  overflow-x: auto;
-  flex: 1;
-  min-width: 0;
-  position: relative;
-}
 
 .child-nodes {
   border-left: 1px dashed #444;
@@ -201,9 +190,6 @@ button {
     border-left-color: #555;
   }
   
-  .info-container {
-    background: rgba(100, 108, 255, 0.1);
-  }
   
   .node-header:hover {
     background-color: rgba(100, 108, 255, 0.15);

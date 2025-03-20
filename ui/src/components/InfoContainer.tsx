@@ -187,24 +187,26 @@ const InfoContainer: React.FC<InfoContainerProps> = ({
     });
   };
 
-  //useEffect(() => {
-  //  fetchInfo();
-  //}, [name]);
+  useEffect(() => {
+    fetchInfo();
+  }, [name]);
 
-  //const fetchInfo = async () => {
-  //  try {
-  //    const data = await fetchNodeInfo(name);
-  //    // If data is a byte array, decode it
-  //    if (Array.isArray(data)) {
-  //      const decoded = String.fromCharCode(...data);
-  //      setInfo(JSON.parse(decoded));
-  //    } else {
-  //      setInfo(data);
-  //    }
-  //  } catch (error) {
-  //    console.error("Error fetching node info:", error);
-  //  }
-  //};
+  const fetchInfo = async () => {
+    try {
+      const data = await fetchNodeInfo(name);
+      const data2 = await fetchNodeInfo(name);
+      console.log("Fetched data:", data);
+      // If data is a byte array, decode it
+      if (Array.isArray(data)) {
+        const decoded = String.fromCharCode(...data);
+        setInfo(JSON.parse(decoded));
+      } else {
+        setInfo(data);
+      }
+    } catch (error) {
+        console.error("Error fetching node info:", error);
+    }
+  };
 
   console.log("Info state:", info);
 

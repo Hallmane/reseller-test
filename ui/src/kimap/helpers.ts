@@ -18,7 +18,7 @@ export async function fetchNode(name: string) {
   });
   
   const data = await response.json();
-  console.log('Received response:', data);  // Debug log
+//  console.log('Received response:', data);  // Debug log
   
   if (data && typeof data === 'object') {
     if ('Node' in data) {
@@ -49,7 +49,7 @@ export async function fetchNodeInfo(name: string) {
   });
 
   const data = await response.json();
-  console.log('Received response:', data);
+//  console.log('Received response:', data);
   
   if (data.tba && data.owner) {
     // Direct JSON response

@@ -63,6 +63,7 @@ export const NodeElement: React.FC<NodeElementProps> = ({
         if ((segments === 3 || segments === 4) && parentTba) {
           try {
             const infoData = await fetchNodeInfo(name);
+            console.log("Info data fetched:", infoData);
             setInfo(infoData);
           } catch (infoError) {
             console.error("Error fetching node info:", infoError);
